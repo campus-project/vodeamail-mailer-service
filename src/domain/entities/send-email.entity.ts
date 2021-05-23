@@ -31,6 +31,9 @@ export class SendEmail {
   @Column({ type: 'text' })
   html: string;
 
+  @Column({ type: 'tinyint', default: 0 })
+  is_failed: boolean;
+
   @CreateDateColumn()
   created_at: string;
 }

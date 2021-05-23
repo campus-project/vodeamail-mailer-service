@@ -39,7 +39,8 @@ export class SendEmailService {
         html: html,
         headers: {},
       })
-      .catch(async () => {
+      .catch(async (e) => {
+        console.log(e);
         await this.sendEmailRepository.save({
           ...data,
           is_failed: true,
