@@ -13,7 +13,8 @@ const providers: Provider[] = [
         transport: Transport.KAFKA,
         options: {
           client: {
-            clientId: configService.get<string>('KAFKA_CLIENT_ID') || 'gateway',
+            clientId:
+              configService.get<string>('KAFKA_CLIENT_ID') || 'mailer-service',
             brokers: [
               configService.get<string>('KAFKA_BROKER') || 'localhost:9092',
             ],
@@ -21,7 +22,7 @@ const providers: Provider[] = [
           consumer: {
             groupId:
               configService.get<string>('KAFKA_CONSUMER_GROUP_ID') ||
-              'gateway-consumer',
+              'mailer-service-consumer',
           },
         },
       }),
