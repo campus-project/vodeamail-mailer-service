@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
-import { SendEmailController } from './controllers/send-email.controller';
+
 import { InfrastructureModule } from '../infrastructure/infrastructure.module';
 import { DomainModule } from '../domain/domain.module';
+import { SendEmailController } from './controllers/send-email.controller';
 
 @Module({
   imports: [InfrastructureModule, DomainModule],

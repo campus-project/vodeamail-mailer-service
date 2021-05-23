@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Brackets, Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import * as _ from 'lodash';
@@ -39,35 +39,33 @@ export class SendEmailService {
         html: html,
         headers: {},
       })
-      .catch(async (e) => {
-        console.log(e);
+      .catch(async () => {
         await this.sendEmailRepository.save({
           ...data,
           is_failed: true,
         });
       });
 
-    return await this.findOne({ id: data.id });
+    return await this.findOne({
+      id: data.id,
+      organization_id: data.organization_id,
+    });
   }
 
   async findAll(findAllSendEmailDto: FindSendEmailDto): Promise<SendEmail[]> {
-    const { id, ids } = findAllSendEmailDto;
-    const qb = this.sendEmailRepository
-      .createQueryBuilder('send_emails')
-      .select('send_emails.*')
-      .where(
-        new Brackets((q) => {
-          if (id !== undefined) {
-            q.where('send_emails.id = :id', { id });
-          }
+    const { id, ids, organization_id } = findAllSendEmailDto;
 
-          if (Array.isArray(ids) && ids.length) {
-            q.andWhere('send_emails.id IN (:...ids)', { ids });
-          }
-        }),
-      );
+    const filteredIds = ids === undefined ? [] : ids;
+    if (id !== undefined) {
+      filteredIds.push(id);
+    }
 
-    return await qb.execute();
+    return await this.sendEmailRepository.find({
+      where: {
+        organization_id: organization_id,
+        ...(id || ids ? { id: In(filteredIds) } : {}),
+      },
+    });
   }
 
   async findOne(findOneSendEmailDto: FindSendEmailDto): Promise<SendEmail> {
