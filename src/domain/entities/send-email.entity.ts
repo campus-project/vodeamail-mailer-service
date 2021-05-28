@@ -32,7 +32,13 @@ export class SendEmail {
   html: string;
 
   @Column({ type: 'tinyint', default: 0 })
-  is_failed: boolean;
+  is_delivered: boolean;
+
+  @Column({ type: 'tinyint', default: 0 })
+  retry: number;
+
+  @Column({ type: 'varchar', nullable: true })
+  external_id?: string;
 
   @CreateDateColumn()
   created_at: string;

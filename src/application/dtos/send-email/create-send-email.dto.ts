@@ -4,8 +4,9 @@ import {
   IsOptional,
   IsString,
   IsUUID,
+  Validate,
 } from 'class-validator';
-import { Column } from 'typeorm';
+import { SendEmailExternalUniqueRule } from '../../rules/send-email-external-unique.rule';
 
 export class CreateSendEmailDto {
   @IsNotEmpty()
@@ -36,9 +37,9 @@ export class CreateSendEmailDto {
   @IsString()
   html: string;
 
-  @Column({ type: 'tinyint', default: 0 })
-  is_failed?: boolean;
-
-  @Column({ type: 'text', nullable: true })
-  failed_message?: string;
+  @IsOptional()
+  @IsUUID()
+  @IsString()
+  @Validate(SendEmailExternalUniqueRule)
+  external_id?: string;
 }

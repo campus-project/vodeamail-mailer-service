@@ -1,6 +1,7 @@
-import { Injectable } from '@nestjs/common';
-import { In, Repository } from 'typeorm';
+import { HttpStatus, Injectable } from '@nestjs/common';
+import { In, LessThan, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Cron } from '@nestjs/schedule';
 
 import * as _ from 'lodash';
 
@@ -8,6 +9,8 @@ import { SendEmail } from '../entities/send-email.entity';
 import { CreateSendEmailDto } from '../../application/dtos/send-email/create-send-email.dto';
 import { FindSendEmailDto } from '../../application/dtos/send-email/find-send-email.dto';
 import { MailerService } from '@nestjs-modules/mailer';
+import { RpcException } from '@nestjs/microservices';
+import { SendEmailExternalIdExistsDto } from '../../application/dtos/send-email/send-email-external-id-exists.dto';
 
 @Injectable()
 export class SendEmailService {
@@ -18,8 +21,16 @@ export class SendEmailService {
   ) {}
 
   async create(createSendEmailDto: CreateSendEmailDto): Promise<SendEmail> {
-    const { organization_id, from, from_name, to, to_name, subject, html } =
-      createSendEmailDto;
+    const {
+      organization_id,
+      from,
+      from_name,
+      to,
+      to_name,
+      subject,
+      html,
+      external_id,
+    } = createSendEmailDto;
 
     const data = await this.sendEmailRepository.save({
       organization_id,
@@ -29,23 +40,8 @@ export class SendEmailService {
       to_name,
       subject,
       html,
+      external_id,
     });
-
-    await this.mailer
-      .sendMail({
-        from: from_name ? `${from_name} <${from}>` : from,
-        to: to ? `${to_name} <${to}>` : to,
-        subject: subject,
-        html: html,
-        headers: {},
-      })
-      .catch(async (e) => {
-        console.log(e);
-        await this.sendEmailRepository.save({
-          ...data,
-          is_failed: true,
-        });
-      });
 
     return await this.findOne({
       id: data.id,
@@ -72,5 +68,49 @@ export class SendEmailService {
   async findOne(findOneSendEmailDto: FindSendEmailDto): Promise<SendEmail> {
     const data = await this.findAll(findOneSendEmailDto);
     return _.head(data);
+  }
+
+  @Cron('*/3 * * * * *')
+  async sendEmail() {
+    const pendingSendEmails = await this.sendEmailRepository.find({
+      where: {
+        is_delivered: 0,
+        retry: LessThan(3),
+      },
+    });
+
+    for (const data of pendingSendEmails) {
+      await this.mailer
+        .sendMail({
+          from: data.from_name ? `${data.from_name} <${data.from}>` : data.from,
+          to: data.to ? `${data.to_name} <${data.to}>` : data.to,
+          subject: data.subject,
+          html: data.html,
+          headers: {},
+        })
+        .then(async () => {
+          await this.sendEmailRepository.save({
+            ...data,
+            is_delivered: true,
+          });
+        })
+        .catch(async () => {
+          await this.sendEmailRepository.save({
+            ...data,
+            retry: data.retry++,
+          });
+        });
+    }
+  }
+
+  async externalIdExists(
+    sendEmailExternalIdExistsDto: SendEmailExternalIdExistsDto,
+  ): Promise<boolean> {
+    const { external_id, organization_id } = sendEmailExternalIdExistsDto;
+    return (
+      (await this.sendEmailRepository.count({
+        where: { external_id, organization_id },
+      })) > 0
+    );
   }
 }
