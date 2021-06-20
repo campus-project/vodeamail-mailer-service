@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { In, LessThan, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Cron } from '@nestjs/schedule';
@@ -9,7 +9,6 @@ import { SendEmail } from '../entities/send-email.entity';
 import { CreateSendEmailDto } from '../../application/dtos/send-email/create-send-email.dto';
 import { FindSendEmailDto } from '../../application/dtos/send-email/find-send-email.dto';
 import { MailerService } from '@nestjs-modules/mailer';
-import { RpcException } from '@nestjs/microservices';
 import { SendEmailExternalIdExistsDto } from '../../application/dtos/send-email/send-email-external-id-exists.dto';
 
 @Injectable()
