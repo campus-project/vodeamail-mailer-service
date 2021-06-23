@@ -1,34 +1,10 @@
 import { Module, Provider } from '@nestjs/common';
 import { DatabaseModule } from './database/database.module';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { ClientProxyFactory, Transport } from '@nestjs/microservices';
+import { ConfigModule } from '@nestjs/config';
 import { MailerModule } from './mailer/mailer.module';
 import { ScheduleModule } from '@nestjs/schedule';
 
-const providers: Provider[] = [
-  {
-    provide: 'CLIENT_KAFKA',
-    inject: [ConfigService],
-    useFactory: (configService: ConfigService) =>
-      ClientProxyFactory.create({
-        transport: Transport.KAFKA,
-        options: {
-          client: {
-            clientId:
-              configService.get<string>('KAFKA_CLIENT_ID') || 'mailer-service',
-            brokers: [
-              configService.get<string>('KAFKA_BROKER') || 'localhost:9092',
-            ],
-          },
-          consumer: {
-            groupId:
-              configService.get<string>('KAFKA_CONSUMER_GROUP_ID') ||
-              'mailer-service-consumer',
-          },
-        },
-      }),
-  },
-];
+const providers: Provider[] = [];
 
 @Module({
   imports: [

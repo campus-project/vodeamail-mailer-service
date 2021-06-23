@@ -5,6 +5,8 @@ import { SendEmailService } from '../../domain/services/send-email.service';
 import { CreateSendEmailDto } from '../dtos/send-email/create-send-email.dto';
 import { FindSendEmailDto } from '../dtos/send-email/find-send-email.dto';
 
+import { SendEmail } from '../../domain/entities/send-email.entity';
+
 @Controller()
 export class SendEmailController {
   constructor(
@@ -13,20 +15,24 @@ export class SendEmailController {
   ) {}
 
   @MessagePattern('createSendEmail')
-  create(
-    @Payload('value')
+  async create(
+    @Payload()
     createSendEmailDto: CreateSendEmailDto,
-  ) {
-    return this.sendEmailService.create(createSendEmailDto);
+  ): Promise<SendEmail> {
+    return await this.sendEmailService.create(createSendEmailDto);
   }
 
   @MessagePattern('findAllSendEmail')
-  findAll(@Payload('value') findSendEmail: FindSendEmailDto) {
-    return this.sendEmailService.findAll(findSendEmail);
+  async findAll(
+    @Payload() findSendEmail: FindSendEmailDto,
+  ): Promise<SendEmail[]> {
+    return await this.sendEmailService.findAll(findSendEmail);
   }
 
   @MessagePattern('findOneSendEmail')
-  findOne(@Payload('value') findSendEmail: FindSendEmailDto) {
-    return this.sendEmailService.findOne(findSendEmail);
+  async findOne(
+    @Payload() findSendEmail: FindSendEmailDto,
+  ): Promise<SendEmail> {
+    return await this.sendEmailService.findOne(findSendEmail);
   }
 }
