@@ -9,7 +9,6 @@ import { SendEmail } from '../entities/send-email.entity';
 import { CreateSendEmailDto } from '../../application/dtos/send-email/create-send-email.dto';
 import { FindSendEmailDto } from '../../application/dtos/send-email/find-send-email.dto';
 import { MailerService } from '@nestjs-modules/mailer';
-import { SendEmailExternalIdExistsDto } from '../../application/dtos/send-email/send-email-external-id-exists.dto';
 
 @Injectable()
 export class SendEmailService {
@@ -31,16 +30,26 @@ export class SendEmailService {
       external_id,
     } = createSendEmailDto;
 
-    const data = await this.sendEmailRepository.save({
-      organization_id,
-      from,
-      from_name,
-      to,
-      to_name,
-      subject,
-      html,
-      external_id,
-    });
+    let data;
+
+    if (external_id) {
+      data = await this.sendEmailRepository.findOne({
+        where: { external_id },
+      });
+    }
+
+    if (!data) {
+      data = await this.sendEmailRepository.save({
+        organization_id,
+        from,
+        from_name,
+        to,
+        to_name,
+        subject,
+        html,
+        external_id,
+      });
+    }
 
     return await this.findOne({
       id: data.id,
@@ -107,16 +116,5 @@ export class SendEmailService {
           });
         });
     }
-  }
-
-  async externalIdExists(
-    sendEmailExternalIdExistsDto: SendEmailExternalIdExistsDto,
-  ): Promise<boolean> {
-    const { external_id, organization_id } = sendEmailExternalIdExistsDto;
-    return (
-      (await this.sendEmailRepository.count({
-        where: { external_id, organization_id },
-      })) > 0
-    );
   }
 }

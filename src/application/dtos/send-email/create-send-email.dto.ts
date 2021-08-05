@@ -4,9 +4,7 @@ import {
   IsOptional,
   IsString,
   IsUUID,
-  Validate,
 } from 'class-validator';
-import { SendEmailExternalUniqueRule } from '../../rules/send-email-external-unique.rule';
 
 export class CreateSendEmailDto {
   @IsNotEmpty()
@@ -40,6 +38,5 @@ export class CreateSendEmailDto {
   @IsOptional()
   @IsUUID()
   @IsString()
-  @Validate(SendEmailExternalUniqueRule)
   external_id?: string;
 }
