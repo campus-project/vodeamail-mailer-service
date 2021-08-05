@@ -69,7 +69,7 @@ export class SendEmailService {
     return _.head(data);
   }
 
-  @Cron('*/3 * * * * *')
+  @Cron('*/15 * * * * *')
   async sendEmail() {
     const pendingSendEmails = await this.sendEmailRepository.find({
       where: {
