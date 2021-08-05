@@ -78,6 +78,8 @@ export class SendEmailService {
       },
     });
 
+    console.log('Total Pending: ' + pendingSendEmails.length);
+
     for (const data of pendingSendEmails) {
       await this.mailer
         .sendMail({
@@ -87,13 +89,18 @@ export class SendEmailService {
           html: data.html,
           headers: {},
         })
-        .then(async () => {
+        .then(async (messageInfo) => {
           await this.sendEmailRepository.save({
             ...data,
             is_delivered: true,
           });
+
+          console.log('Success: ' + data.id);
+          console.log(messageInfo);
         })
-        .catch(async () => {
+        .catch(async (e) => {
+          console.log('Failed: ' + data.id);
+          console.log(e);
           await this.sendEmailRepository.save({
             ...data,
             retry: data.retry++,
